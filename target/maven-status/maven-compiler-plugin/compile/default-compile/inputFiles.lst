@@ -1,0 +1,10 @@
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\service\impl\ActorServiceImpl.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\dao\ActorDAO.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\service\ActorService.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\db\util\MysqlCon.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\config\HibernateConf.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\modal\Actor.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\controller\ActorController.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\App.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\SakilaApplication.java
+C:\HK\WK1\sakila-api\src\main\java\com\sakila\dao\impl\ActorDAOImpl.java
