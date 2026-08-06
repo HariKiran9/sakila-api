@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.sakila.dao.impl;
 
 import java.text.SimpleDateFormat;
@@ -8,17 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -27,14 +15,17 @@ import com.sakila.db.util.SKUtility;
 import com.sakila.modal.Category;
 import com.sakila.vo.CategoryVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("categoryDAO")
 public class CategoryDAOImpl implements CategoryDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(CategoryDAOImpl.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -46,7 +37,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 	 */
 	@Override
 	public List<CategoryVO> getCategories() {
-		logger.info("... Entered into getCategories() of CategoryDAOImpl ...");
+		log.info("... Entered into getCategories() of CategoryDAOImpl ...");
 		List<CategoryVO> categoryVOList = new ArrayList<CategoryVO>();
 
 		Session session = (Session) entityManager.getDelegate();
@@ -69,7 +60,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 
 	@Override
 	public List<CategoryVO> getCategoriesByPagination(PageRequest pageable) {
-		logger.info("... Entered into getCategoriesByPagination() of CategoryDAOImpl ...");
+		log.info("... Entered into getCategoriesByPagination() of CategoryDAOImpl ...");
 
 		int pageNumber = pageable.getPageNumber();
 		int pageSize = pageable.getPageSize();
@@ -80,7 +71,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 		CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
 		countQuery.select(criteriaBuilder.count(countQuery.from(Category.class)));
 		Long countResults = entityManager.createQuery(countQuery).getSingleResult();
-		logger.info(" Total Count : {} ", countResults);
+		log.info(" Total Count : {} ", countResults);
 		int lastPageNumber = 0;
 		if (pageNumber - 1 == 0) {
 			lastPageNumber = 0;
@@ -88,14 +79,14 @@ public class CategoryDAOImpl implements CategoryDAO {
 			lastPageNumber = pageNumber - 1;
 			lastPageNumber = lastPageNumber * pageSize;
 		}
-		logger.info("Last Page Number : {}, Page Number : {}, Page Size : {} ", lastPageNumber, pageNumber, pageSize);
+		log.info("Last Page Number : {}, Page Number : {}, Page Size : {} ", lastPageNumber, pageNumber, pageSize);
 		CriteriaQuery<Category> criteriaQuery = criteriaBuilder.createQuery(Category.class);
 		Root<Category> from = criteriaQuery.from(Category.class);
 		CriteriaQuery<Category> select = criteriaQuery.select(from);
 		TypedQuery<Category> typedQuery = entityManager.createQuery(select);
 		typedQuery.setFirstResult(lastPageNumber);
 		typedQuery.setMaxResults(pageSize);
-		logger.info(" Result Size : {} ", typedQuery.getResultList().size());
+		log.info(" Result Size : {} ", typedQuery.getResultList().size());
 		List<Category> categoryList = typedQuery.getResultList();
 		categoryList.stream().forEach(categoryObj -> {
 			CategoryVO category = new CategoryVO();
@@ -117,80 +108,83 @@ public class CategoryDAOImpl implements CategoryDAO {
 
 	@Override
 	public CategoryVO getCategoryDetailsById(int categoryId) {
-		logger.info("... Entered into getCategoryDetailsById() of CategoryDAOImpl ...");
+		log.info("... Entered into getCategoryDetailsById() of CategoryDAOImpl ...");
 		Session session = (Session) entityManager.getDelegate();
 		CategoryVO category = SKUtility.getCategoryDetailsById(session, categoryId);
-		logger.info("Category Obj : " + category);
+		log.info("Category Obj : " + category);
 		return category;
 	}
 
 	@Override
 	public int saveCategory(CategoryVO category) {
-		logger.info("... Entered into saveCategory() of CategoryDAOImpl ...category : {}", category);
+		log.info("... Entered into saveCategory() of CategoryDAOImpl ...category : {}", category);
 		int categoryId = 0;
-		Session session = null;
+
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			session = entityManager.unwrap(Session.class);
 			Category categoryObj = new Category();
 			categoryObj.setName(category.getName());
 			categoryObj.setLastUpdate(sdf.format(new Date()));
-			categoryId = (int) session.save(categoryObj);
+
+			// Use the modern JPA spec method via the injected entityManager
+			entityManager.persist(categoryObj);
+
+			// Retrieve the generated ID directly from the managed object
+			// Replace getCategoryId() with your exact getter name if different
+			categoryId = categoryObj.getCategoryId();
 		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (session != null && session.isOpen()) {
-				session.flush();
-				session.close();
-			}
-		} // finally
+			log.error("Exception: {}", e);
+			throw e; // Recommended practice to let Spring handle transaction rollbacks on exceptions
+		}
+
 		return categoryId;
 	}
 
 	@Override
 	public boolean updateCategory(CategoryVO category) {
-		logger.info("... Entered into updateCategory() of CategoryDAOImpl ...category : {}", category);
+		log.info("... Entered into updateCategory() of CategoryDAOImpl ...category : {}", category);
 		boolean isUpdate = false;
-		Session session = null;
+
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			session = entityManager.unwrap(Session.class);
 			Category categoryObj = new Category();
 			categoryObj.setCategoryId(category.getCategoryId());
 			categoryObj.setName(category.getName());
 			categoryObj.setLastUpdate(sdf.format(new Date()));
-			session.update(categoryObj);
+
+			// Use merge instead of update for detached entities
+			entityManager.merge(categoryObj);
+
 			isUpdate = true;
 		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (session != null && session.isOpen()) {
-				session.flush();
-				session.close();
-			}
-		} // finally
+			log.error("Exception: {}", e);
+			throw e; // RETHROW to ensure Spring triggers a transaction rollback if needed
+		}
+
 		return isUpdate;
 	}
 
 	@Override
 	public boolean deleteCategory(int categoryId) {
-		logger.info("... Entered into deleteCategory() of CategoryDAOImpl ...categoryId : {}", categoryId);
+		log.info("... Entered into deleteCategory() of CategoryDAOImpl ...categoryId : {}", categoryId);
 		boolean isDeleted = false;
-		Session session = null;
+
 		try {
-			session = entityManager.unwrap(Session.class);
-			Category categoryObj = new Category();
-			categoryObj.setCategoryId(categoryId);
-			session.delete(categoryObj);
-			isDeleted = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (session != null && session.isOpen()) {
-				session.flush();
-				session.close();
+			// 1. Fetch the managed entity from the context first
+			Category categoryObj = entityManager.find(Category.class, categoryId);
+
+			if (categoryObj != null) {
+				// 2. Remove the managed entity using the standard JPA method
+				entityManager.remove(categoryObj);
+				isDeleted = true;
+			} else {
+				log.warn("Category with ID {} not found for deletion", categoryId);
 			}
-		} // finally
+		} catch (Exception e) {
+			log.error("Exception: {}", e);
+			throw e; // Rethrow to ensure Spring triggers a transaction rollback
+		}
+
 		return isDeleted;
 	}
 

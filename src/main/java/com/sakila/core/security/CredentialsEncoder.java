@@ -3,7 +3,7 @@
  */
 package com.sakila.core.security;
 
-import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author bc887d

@@ -1,22 +1,12 @@
-/**
- * 
- */
 package com.sakila.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import com.sakila.dao.StaffDAO;
 import com.sakila.modal.Address;
@@ -28,14 +18,16 @@ import com.sakila.vo.CityVO;
 import com.sakila.vo.CountryVO;
 import com.sakila.vo.StaffVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("staffDAO")
 public class StaffDAOImpl implements StaffDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(StaffDAOImpl.class);
 
 	@PersistenceContext
 	public EntityManager entityManagerFactory;
@@ -47,7 +39,7 @@ public class StaffDAOImpl implements StaffDAO {
 	 */
 	@Override
 	public List<StaffVO> getStaff() {
-		logger.info("... Entered into getStaff() of StaffDAOImpl ...");
+		log.info("... Entered into getStaff() of StaffDAOImpl ...");
 		List<StaffVO> staffVOList = new ArrayList<StaffVO>();
 		Session session = (Session) entityManagerFactory.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -57,42 +49,44 @@ public class StaffDAOImpl implements StaffDAO {
 		Query<Staff> query = session.createQuery(criteria);
 
 		List<Staff> staffList = query.getResultList();
-		for (Staff staff2 : staffList) {
-			StaffVO staff = new StaffVO();
-			staff.setStaffId(staff2.getStaffId());
-			staff.setActive(staff2.getActive());
-			staff.setEmail(staff2.getEmail());
-			staff.setFirstName(staff2.getFirstName());
-			staff.setLastName(staff2.getLastName());
-			staff.setLastUpdate(staff2.getLastUpdate());
-			staff.setUserName(staff2.getUserName());
-			staff.setPassword(staff2.getPassword());
+		if (!CollectionUtils.isEmpty(staffList)) {
+			staffList.forEach(staff2 -> {
+				StaffVO staff = new StaffVO();
+				staff.setStaffId(staff2.getStaffId());
+				staff.setActive(staff2.getActive());
+				staff.setEmail(staff2.getEmail());
+				staff.setFirstName(staff2.getFirstName());
+				staff.setLastName(staff2.getLastName());
+				staff.setLastUpdate(staff2.getLastUpdate());
+				staff.setUserName(staff2.getUserName());
+				staff.setPassword(staff2.getPassword());
 
-			AddressVO address = new AddressVO();
-			Address address2 = getAddressDetailsById(staff2.getAddress().getAddressId());
-			address.setAddressId(address2.getAddressId());
-			address.setAddress(address2.getAddress());
-			address.setAddress2(address2.getAddress2());
+				AddressVO address = new AddressVO();
+				Address address2 = getAddressDetailsById(staff2.getAddress().getAddressId());
+				address.setAddressId(address2.getAddressId());
+				address.setAddress(address2.getAddress());
+				address.setAddress2(address2.getAddress2());
 
-			CityVO city = getCityDetailsById(address2.getCity().getCityId());
+				CityVO city = getCityDetailsById(address2.getCity().getCityId());
+				if (city.getCountry() != null) {
+					CountryVO country = new CountryVO();
+					Country country2 = getCountryDetailsById(city.getCountry().getCountryId());
+					country.setCountryId(country2.getCountryId());
+					country.setCountry(country2.getCountry());
+					country.setLastUpdate(country2.getLastUpdate());
+					city.setCountry(country);
+					address.setCity(city);
+				}
+				address.setDistrict(address2.getDistrict());
+				address.setLastUpdate(address2.getLastUpdate());
+				address.setPhone(address2.getPhone());
+				address.setPostalCode(address2.getPostalCode());
 
-			CountryVO country = new CountryVO();
-			if (city.getCountry() != null) {
-				Country country2 = getCountryDetailsById(city.getCountry().getCountryId());
-				country.setCountryId(country2.getCountryId());
-				country.setCountry(country2.getCountry());
-				country.setLastUpdate(country2.getLastUpdate());
-				city.setCountry(country);
-			}
+				staff.setAddress(address);
+				staffVOList.add(staff);
+			});
+		} else {
 
-			address.setCity(city);
-			address.setDistrict(address2.getDistrict());
-			address.setLastUpdate(address2.getLastUpdate());
-			address.setPhone(address2.getPhone());
-			address.setPostalCode(address2.getPostalCode());
-
-			staff.setAddress(address);
-			staffVOList.add(staff);
 		}
 		return staffVOList;
 	}

@@ -1,11 +1,6 @@
-/**
- * 
- */
 package com.sakila.service.impl;
 
 import java.util.List;
-
-import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +9,8 @@ import com.sakila.dao.CityDAO;
 import com.sakila.service.CityService;
 import com.sakila.vo.CityVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.transaction.Transactional;
+
 @Service("cityService")
 @Transactional
 public class CityServiceImpl implements CityService {
@@ -36,7 +29,7 @@ public class CityServiceImpl implements CityService {
 	}
 
 	@Override
-	public CityVO getCityDetailsById(int cityId) {		 
+	public CityVO getCityDetailsById(int cityId) {
 		return cityDAO.getCityDetailsById(cityId);
 	}
 

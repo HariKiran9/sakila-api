@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.sakila.db.util;
 
 import org.hibernate.Session;
@@ -28,16 +25,13 @@ import com.sakila.vo.RentalVO;
 import com.sakila.vo.StaffVO;
 import com.sakila.vo.StoreVO;
 
-/**
- * @author bc887d
- *
- */
 public class SKUtility {
 
 	public static RentalVO getRentalDetailsById(Session session, int rentalId) {
 		RentalVO rental = new RentalVO();
 
-		Rental rental1 = session.load(Rental.class, rentalId);
+		// Replaced session.load() with session.getReference()
+		Rental rental1 = session.getReference(Rental.class, rentalId);
 		rental.setRentalId(rental1.getRentalId());
 		rental.setRentalDate(rental1.getRentalDate());
 		rental.setReturnDate(rental1.getReturnDate());
@@ -72,7 +66,8 @@ public class SKUtility {
 
 	public static CustomerVO getCustomerDetailsById(Session session, int customerId) {
 		CustomerVO customer = new CustomerVO();
-		Customer customer1 = session.load(Customer.class, customerId);
+		// Replaced session.load() with session.getReference()
+		Customer customer1 = session.getReference(Customer.class, customerId);
 		customer.setCustomerId(customer1.getCustomerId());
 		customer.setFirstName(customer1.getFirstName());
 		customer.setLastName(customer1.getLastName());
@@ -83,7 +78,8 @@ public class SKUtility {
 	public static FilmVO getFilmDetailsById(Session session, int filmId) {
 		FilmVO film = new FilmVO();
 
-		Film film1 = session.load(Film.class, filmId);
+		// Replaced session.load() with session.getReference()
+		Film film1 = session.getReference(Film.class, filmId);
 		film.setFilmId(film1.getFilmId());
 		film.setTitle(film1.getTitle());
 		film.setDescription(film1.getDescription());
@@ -97,7 +93,8 @@ public class SKUtility {
 	public static StoreVO getStoreDetailsById(Session session, int storeId) {
 		StoreVO store = new StoreVO();
 
-		Store store1 = session.load(Store.class, storeId);
+		// Replaced session.load() with session.getReference()
+		Store store1 = session.getReference(Store.class, storeId);
 		store.setStoreId(store1.getStoreId());
 
 		StaffVO staff = getStaffDetailsById(session, store1.getStaff().getStaffId());
@@ -112,7 +109,8 @@ public class SKUtility {
 	public static StaffVO getStaffDetailsById(Session session, int staffId) {
 		StaffVO staff = new StaffVO();
 
-		Staff staff2 = session.load(Staff.class, staffId);
+		// Replaced session.load() with session.getReference()
+		Staff staff2 = session.getReference(Staff.class, staffId);
 		staff.setStaffId(staff2.getStaffId());
 		staff.setActive(staff2.getActive());
 		staff.setEmail(staff2.getEmail());
@@ -129,13 +127,15 @@ public class SKUtility {
 
 	public static AddressVO getAddressDetailsById(Session session, int addressId) {
 		AddressVO address = new AddressVO();
-		Address address1 = session.load(Address.class, addressId);
+		// Replaced session.load() with session.getReference()
+		Address address1 = session.getReference(Address.class, addressId);
 		address.setAddressId(address1.getAddressId());
 		address.setAddress(address1.getAddress());
 		address.setAddress2(address1.getAddress2());
 		address.setDistrict(address1.getDistrict());
 		address.setLastUpdate(address1.getLastUpdate());
-		address.setPhone(address.getPhone());
+		// FIXED TYPO: changed address.getPhone() to address1.getPhone()
+		address.setPhone(address1.getPhone());
 		address.setPostalCode(address1.getPostalCode());
 
 		CityVO city = getCityDetailsById(session, address1.getCity().getCityId());
@@ -146,7 +146,8 @@ public class SKUtility {
 
 	public static CityVO getCityDetailsById(Session session, int cityId) {
 		CityVO city = new CityVO();
-		City city1 = session.load(City.class, cityId);
+		// Replaced session.load() with session.getReference()
+		City city1 = session.getReference(City.class, cityId);
 		city.setCityId(city1.getCityId());
 		city.setCity(city1.getCity());
 		CountryVO country = getCountryDetailsById(session, city1.getCountry().getCountryId());
@@ -157,7 +158,8 @@ public class SKUtility {
 
 	public static CountryVO getCountryDetailsById(Session session, int countryId) {
 		CountryVO country = new CountryVO();
-		Country country1 = session.load(Country.class, countryId);
+		// Replaced session.load() with session.getReference()
+		Country country1 = session.getReference(Country.class, countryId);
 		country.setCountryId(country1.getCountryId());
 		country.setCountry(country1.getCountry());
 		country.setLastUpdate(country1.getLastUpdate());
@@ -166,20 +168,21 @@ public class SKUtility {
 
 	public static LanguageVO getLanguageDetailsById(Session session, int languageId) {
 		LanguageVO language = new LanguageVO();
-		Language language1 = session.load(Language.class, languageId);
+		// Replaced session.load() with session.getReference()
+		Language language1 = session.getReference(Language.class, languageId);
 		language.setLanguageId(language1.getLanguageId());
 		language.setName(language1.getName());
-		language1.setLastUpdate(language.getLastUpdate());
+		language.setLastUpdate(language1.getLastUpdate()); // Fixed value tracking mapping assignment
 		return language;
 	}
 
 	public static CategoryVO getCategoryDetailsById(Session session, int categoryId) {
 		CategoryVO category = new CategoryVO();
-		Category category1 = session.load(Category.class, categoryId);
+		// Replaced session.load() with session.getReference()
+		Category category1 = session.getReference(Category.class, categoryId);
 		category.setCategoryId(category1.getCategoryId());
 		category.setName(category1.getName());
 		category.setLastUpdate(category1.getLastUpdate());
 		return category;
 	}
-
 }

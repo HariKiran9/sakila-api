@@ -1,21 +1,10 @@
-/**
- * 
- */
 package com.sakila.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.FilmDAO;
@@ -24,14 +13,16 @@ import com.sakila.modal.Film;
 import com.sakila.vo.FilmVO;
 import com.sakila.vo.LanguageVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("filmDAO")
 public class FilmDAOImpl implements FilmDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(FilmDAOImpl.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -43,7 +34,7 @@ public class FilmDAOImpl implements FilmDAO {
 	 */
 	@Override
 	public List<FilmVO> getFilms() {
-		logger.info("... Entered into getFilms() of FilmDAOImpl ...");
+		log.info("... Entered into getFilms() of FilmDAOImpl ...");
 		List<FilmVO> films = new ArrayList<FilmVO>();
 		Session session = (Session) entityManager.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();

@@ -1,21 +1,10 @@
-/**
- * 
- */
 package com.sakila.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.InventoryDAO;
@@ -25,14 +14,16 @@ import com.sakila.vo.FilmVO;
 import com.sakila.vo.InventoryVO;
 import com.sakila.vo.StoreVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("inventoryDAO")
 public class InventoryDAOImpl implements InventoryDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(InventoryDAOImpl.class);
 
 	@PersistenceContext
 	private EntityManager entityManagerFactory;
@@ -44,7 +35,7 @@ public class InventoryDAOImpl implements InventoryDAO {
 	 */
 	@Override
 	public List<InventoryVO> getInventory() {
-		logger.info("... Entered into getActors() of InventoryDAOImpl ...");
+		log.info("... Entered into getActors() of InventoryDAOImpl ...");
 		List<InventoryVO> inventoryList = new ArrayList<InventoryVO>();
 
 		Session session = (Session) entityManagerFactory.getDelegate();

@@ -1,11 +1,6 @@
-/**
- * 
- */
 package com.sakila.service.impl;
 
 import java.util.List;
-
-import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -15,10 +10,8 @@ import com.sakila.dao.CategoryDAO;
 import com.sakila.service.CategoryService;
 import com.sakila.vo.CategoryVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.transaction.Transactional;
+
 @Service("categoryService")
 @Transactional
 public class CategoryServiceImpl implements CategoryService {

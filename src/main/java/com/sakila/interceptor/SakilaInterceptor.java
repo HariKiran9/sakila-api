@@ -1,28 +1,19 @@
-/**
- * 
- */
 package com.sakila.interceptor;
 
 import java.util.Enumeration;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class SakilaInterceptor implements HandlerInterceptor {
-
-	private Logger logger = LoggerFactory.getLogger(SakilaInterceptor.class);
 
 	@Value("${CLIENT_HEADER_PREFIX}")
 	private String clinetPrefix = "sakila";
@@ -42,8 +33,8 @@ public class SakilaInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		logger.info("...Entered into preHandle() of SakilaInterceptor...");
-		logger.info("[preHandle][" + request + "]" + "[" + request.getMethod() + "]" + request.getRequestURI()
+		log.info("...Entered into preHandle() of SakilaInterceptor...");
+		log.info("[preHandle][" + request + "]" + "[" + request.getMethod() + "]" + request.getRequestURI()
 				+ getParameters(request));
 		return true;
 	}
@@ -77,7 +68,7 @@ public class SakilaInterceptor implements HandlerInterceptor {
 	private String getRemoteAddr(HttpServletRequest request) {
 		String ipFromHeader = request.getHeader("X-FORWARDED-FOR");
 		if (ipFromHeader != null && ipFromHeader.length() > 0) {
-			logger.info("ip from proxy - X-FORWARDED-FOR : " + ipFromHeader);
+			log.info("ip from proxy - X-FORWARDED-FOR : " + ipFromHeader);
 			return ipFromHeader;
 		}
 		return request.getRemoteAddr();
@@ -94,13 +85,13 @@ public class SakilaInterceptor implements HandlerInterceptor {
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-		logger.info("...Entered into postHandle() of SakilaInterceptor...");
+		log.info("...Entered into postHandle() of SakilaInterceptor...");
 		final HttpServletRequest httprequest = request;
 		final Enumeration<String> headerNames = httprequest.getHeaderNames();
 		if (headerNames != null) {
 			while (headerNames.hasMoreElements()) {
 				String headerKey = (String) headerNames.nextElement();
-				logger.info("headerKey : {}", headerKey);
+				log.info("headerKey : {}", headerKey);
 				if (headerKey.contains(this.clinetPrefix)) {
 					response.addHeader(headerKey, httprequest.getHeader(headerKey));
 				}
@@ -120,7 +111,7 @@ public class SakilaInterceptor implements HandlerInterceptor {
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
 			throws Exception {
-		logger.info("...Entered into afterCompletion() of SakilaInterceptor...");
+		log.info("...Entered into afterCompletion() of SakilaInterceptor...");
 	}
 
 }

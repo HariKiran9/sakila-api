@@ -6,16 +6,8 @@ package com.sakila.dao.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.CustomerDAO;
@@ -32,14 +24,16 @@ import com.sakila.vo.CustomerVO;
 import com.sakila.vo.StaffVO;
 import com.sakila.vo.StoreVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("customerDAO")
 public class CustomerDAOImpl implements CustomerDAO {
-
-	private static final Logger loger = LoggerFactory.getLogger(CustomerDAOImpl.class);
 
 	@PersistenceContext
 	public EntityManager entityManagerFactory;
@@ -51,7 +45,7 @@ public class CustomerDAOImpl implements CustomerDAO {
 	 */
 	@Override
 	public List<CustomerVO> getCustomers() {
-		loger.info("... Entered into getStaff() of StaffDAOImpl ...");
+		log.info("... Entered into getStaff() of StaffDAOImpl ...");
 		List<CustomerVO> customerVOList = new ArrayList<CustomerVO>();
 		Session session = (Session) entityManagerFactory.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -95,7 +89,7 @@ public class CustomerDAOImpl implements CustomerDAO {
 
 		address.setAddressId(address1.getAddressId());
 		address.setAddress(address1.getAddress());
-		address.setAddress2(address1.getAddress2());		
+		address.setAddress2(address1.getAddress2());
 		address.setDistrict(address1.getDistrict());
 		address.setPhone(address1.getPhone());
 		address.setLastUpdate(address1.getLastUpdate());

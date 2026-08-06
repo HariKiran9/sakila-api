@@ -7,33 +7,31 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.AddressDAO;
 import com.sakila.modal.Address;
 import com.sakila.modal.City;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("addressDAO")
 public class AddressDAOImpl implements AddressDAO {
-
-	private static final Logger loger = LoggerFactory.getLogger(AddressDAOImpl.class);
 
 	@PersistenceContext
 	private EntityManager entityManagerFactory;
 
 	@Override
 	public List<Address> getAddressDetails() {
-		loger.info("... Entered into getAddressDetails() of AddressDAOImpl ...");
+		log.info("... Entered into getAddressDetails() of AddressDAOImpl ...");
 		Session session = (Session) entityManagerFactory.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();
 		CriteriaQuery<Address> criteria = builder.createQuery(Address.class);
@@ -43,13 +41,13 @@ public class AddressDAOImpl implements AddressDAO {
 		query.setFirstResult(0);
 		query.setMaxResults(100);
 		List<Address> addresses = query.getResultList();
-		System.out.println("Address Size : " + addresses.size());
+		log.info("Address Size : {}", addresses.size());
 		return addresses;
 	}
 
 	@Override
 	public Address getAddressDetailsById(int addressId) {
-		loger.info("... Entered into getAddressDetails() of AddressDAOImpl ...");
+		log.info("... Entered into getAddressDetails() of AddressDAOImpl ...");
 		Session session = (Session) entityManagerFactory.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();
 		CriteriaQuery<Address> criteriaQuery = builder.createQuery(Address.class);
@@ -60,14 +58,14 @@ public class AddressDAOImpl implements AddressDAO {
 
 		Query<Address> query = session.createQuery(criteriaQuery);
 		Address address2 = query.getSingleResult();
-		System.out.println("Address Id : " + address2.getAddressId());
-		System.out.println("Address : " + address2.getAddress());
-		System.out.println("Address2 : " + address2.getAddress2());
-		System.out.println("District : " + address2.getDistrict());
-		System.out.println("Phone : " + address2.getPhone());
-		System.out.println("Postal Code : " + address2.getPostalCode());
-		System.out.println("City Name : " + address2.getCity().getCity());
-		System.out.println("Last Update : " + address2.getLastUpdate());
+		log.info("Address Id : {}", address2.getAddressId());
+		log.info("Address : {}", address2.getAddress());
+		log.info("Address2 : {}", address2.getAddress2());
+		log.info("District : {}", address2.getDistrict());
+		log.info("Phone : {}", address2.getPhone());
+		log.info("Postal Code : {}", address2.getPostalCode());
+		log.info("City Name : {}", address2.getCity().getCity());
+		log.info("Last Update : {}", address2.getLastUpdate());
 
 		Address address = new Address();
 		address.setAddressId(address2.getAddressId());
@@ -79,9 +77,10 @@ public class AddressDAOImpl implements AddressDAO {
 
 		try {
 			StringBuffer sb = new StringBuffer();
-			sb.append("C:").append(File.separator).append("Waste").append(File.separator).append("photo").append(File.separator).append(address2.getAddressId());
+			sb.append("C:").append(File.separator).append("Waste").append(File.separator).append("photo")
+					.append(File.separator).append(address2.getAddressId());
 			sb.toString();
-			System.out.println(sb.toString());
+			log.info(sb.toString());
 			String photoFilePathToSave = "C:\\\\HK\\\\Waste\\\\photo\\\\";
 //			String photoFilePathToSave = sb.toString();
 			Blob blob = address2.getLocation();
@@ -108,7 +107,7 @@ public class AddressDAOImpl implements AddressDAO {
 	private void saveBytesToFile(String outputFileLocation, byte[] fileBytes) throws IOException {
 		File file = new File(outputFileLocation, "kiran.png");
 		if (file.createNewFile()) {
-			System.out.println(outputFileLocation + " File Created in Project root directory");
+			log.info(outputFileLocation + " File Created in Project root directory");
 		}
 		FileOutputStream outputStream = new FileOutputStream(file);
 		outputStream.write(fileBytes);

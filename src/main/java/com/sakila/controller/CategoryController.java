@@ -56,7 +56,7 @@ public class CategoryController {
 		logger.info("...Entered into updateCategory() of CategoryController...id = {} ", categoryId);
 		return new ResponseEntity<>(categoryService.updateCategory(category), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<? extends Object> deleteCategory(@PathVariable(name = "id") int categoryId) {
 		logger.info("...Entered into updateCategory() of CategoryController...id = {} ", categoryId);
@@ -66,7 +66,7 @@ public class CategoryController {
 	@RequestMapping(value = "/page/{page}", method = RequestMethod.GET)
 	public ResponseEntity<? extends Object> listArticlesPageByPage(@PathVariable("page") int page) {
 		int pageSize = 10;
-		PageRequest pageable = new PageRequest(page, pageSize);
+		PageRequest pageable = PageRequest.of(page, pageSize);
 //		Page<CategoryVO> articlePage = categoryService.getCategoriesByPagination(pageable);
 //		int totalPages = articlePage.getTotalPages();
 //		if (totalPages > 0) {

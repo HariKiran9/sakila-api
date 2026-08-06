@@ -1,21 +1,10 @@
-/**
- * 
- */
 package com.sakila.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.RentalDAO;
@@ -26,14 +15,16 @@ import com.sakila.vo.InventoryVO;
 import com.sakila.vo.RentalVO;
 import com.sakila.vo.StaffVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("rentalDAO")
 public class RentalDAOImpl implements RentalDAO {
-
-	private static final Logger logger = LoggerFactory.getLogger(RentalDAOImpl.class);
 
 	@PersistenceContext
 	public EntityManager entityManager;
@@ -45,7 +36,7 @@ public class RentalDAOImpl implements RentalDAO {
 	 */
 	@Override
 	public List<RentalVO> getRental() {
-		logger.info("... Entered into getRental() of RentalDAOImpl ...");
+		log.info("... Entered into getRental() of RentalDAOImpl ...");
 		List<RentalVO> rentalVOList = new ArrayList<RentalVO>();
 
 		Session session = (Session) entityManager.getDelegate();

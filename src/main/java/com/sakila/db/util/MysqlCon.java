@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.sakila.db.util;
 
 import java.sql.Connection;
@@ -8,23 +5,22 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @author bc887d
- *
- */
+@Slf4j
 public class MysqlCon {
-
-	private static final Logger log = Logger.getLogger(MysqlCon.class);
 
 	public static Connection getConnection() {
 		Connection con = null;
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			// 1. Manually loading the driver class is optional, but if you want to keep it
+			// for safety:
+			Class.forName("com.mysql.cj.jdbc.Driver");
+
+			// 2. Establish connection directly
 			con = DriverManager.getConnection("jdbc:mysql://localhost/sakila", "root", "root");
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Exception: {}", e);
 		}
 		return con;
 	}
@@ -35,7 +31,7 @@ public class MysqlCon {
 				connection.close();
 			}
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Excepiont: {}", e);
 		}
 	}
 
@@ -58,7 +54,7 @@ public class MysqlCon {
 			} // while
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Excepiont: {}", e);
 		} finally {
 			MysqlCon.closeConnection(con);
 		} // finally
