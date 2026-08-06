@@ -14,5 +14,12 @@ logs/
 */.classpath
 /target/
 target/*
+target/classes/*
 .classpath
 .settings
+*.class
+bin/
+target/
+.classpath
+.project
+.settings/

@@ -2,13 +2,14 @@ package com.sakila;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Hello world!
@@ -122,80 +123,59 @@ public class App {
 
 	}
 
-	private static final String USER_AGENT = "Mozilla/5.0";
-
 	private static String sendGet(String url) throws Exception {
-		URL obj = new URL(url);
-		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
-		// optional default is GET
-		con.setRequestMethod("GET");
-
-		// add request header
-		con.setRequestProperty("User-Agent", USER_AGENT);
-
-		int responseCode = con.getResponseCode();
 		System.out.println("\nSending 'GET' request to URL : " + url);
-		System.out.println("Response Code : " + responseCode);
 
-		BufferedReader in = null;
-		StringBuffer response = new StringBuffer();
-		if (responseCode == 200) {
-			in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
-			} // while
-		} // if
-		if (in != null) {
-			in.close();
+		// Convert string to URI, open stream, and read all lines into one String
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(URI.create(url).toURL().openStream()))) {
+			return reader.lines().collect(Collectors.joining("\n"));
 		}
-		// print result
-//		System.out.println("Response : " + response.toString());
-		return response.toString();
 	}
 
 	public static double calculateHoldingValue(String date) {
-		System.out.print("Date : " + date);
-		double returnValue = 0.0f;
+		System.out.println("Date : " + date);
+		double returnValue = 0.0;
 		String url1 = "https://api.myjson.com/bins/vf9ac";
 		String url2 = "https://api.myjson.com/bins/1eleys";
+
 		try {
+			// 1. Initialize Jackson's ObjectMapper instead of Gson
+			ObjectMapper mapper = new ObjectMapper();
 
-			Gson gson = new Gson();
-
+			// 2. Fetch and parse Price Data
 			String strJSON1 = sendGet(url1);
-			Price price = gson.fromJson(strJSON1, Price.class);
+			Price price = mapper.readValue(strJSON1, Price.class);
+			System.out.println(" Price Total Records : " + price.getTotalRecords());
 
-//			List<Trans> priceList = new ArrayList<>();
-			int total = price.getTotalRecords();
-			System.out.println(" Price Total Records : " + total);
-//			for (Trans trans : price.getData()) {
-//				priceList.add(trans);
-//			}
-
+			// 3. Fetch and parse Quantity Data
 			String strJSON2 = sendGet(url2);
-			Quantity quantiy = gson.fromJson(strJSON2, Quantity.class);
-			int total2 = quantiy.getTotalRecords();
-			System.out.println(" Quantity Total Records : " + total2);
-//			List<Trans> quantityList = new ArrayList<>();
-//			for (Trans trans : quantiy.getData()) {
-//				quantityList.add(trans);
-//			}
+			Quantity quantity = mapper.readValue(strJSON2, Quantity.class);
+			System.out.println(" Quantity Total Records : " + quantity.getTotalRecords());
 
-			List<Trans> priceList2 = price.getData();
-			List<Trans> quantityList2 = quantiy.getData();
+			List<Trans> priceList = price.getData();
+			List<Trans> quantityList = quantity.getData();
 
-			for (Trans trans : priceList2) {
-				if (trans.getDate().equalsIgnoreCase(date)) {
-					for (Trans trans2 : quantityList2) {
-						if (trans2.getDate().equalsIgnoreCase(date)
-								&& trans.getSecurity().equalsIgnoreCase(trans2.getSecurity())) {
-							String output = "Company : " + trans.getSecurity() + ", Price : " + trans.getPrice()
-									+ ", Quantity : " + trans2.getQuantity();
-							System.out.println(output);
-							returnValue = returnValue + trans.getPrice() * trans2.getQuantity();
-						}
+			// 4. PERFORMANCE OPTIMIZATION: Map the quantities by Security name for O(1)
+			// lookup
+			// Filter by target date first to minimize memory consumption
+			Map<String, Double> quantityMap = quantityList.stream().filter(q -> q.getDate().equalsIgnoreCase(date))
+					.collect(Collectors.toMap(Trans::getSecurity, Trans::getQuantity,
+							(existing, replacement) -> existing + replacement // Handles duplicate securities cleanly
+					));
+
+			// 5. Compute holding values using a fast single-pass loop
+			for (Trans pTrans : priceList) {
+				if (pTrans.getDate().equalsIgnoreCase(date)) {
+					String securityName = pTrans.getSecurity();
+
+					// Fast checking inside our localized hash map instead of running an entire
+					// nested loop
+					if (quantityMap.containsKey(securityName)) {
+						Double qty = quantityMap.get(securityName);
+						Double prc = pTrans.getPrice();
+
+						System.out.println("Company : " + securityName + ", Price : " + prc + ", Quantity : " + qty);
+						returnValue += prc * qty;
 					}
 				}
 			}
