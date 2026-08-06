@@ -4,9 +4,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -38,7 +40,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 	@Override
 	public List<CategoryVO> getCategories() {
 		log.info("... Entered into getCategories() of CategoryDAOImpl ...");
-		List<CategoryVO> categoryVOList = new ArrayList<CategoryVO>();
+		List<CategoryVO> categoryVOList = new ArrayList<>();
 
 		Session session = (Session) entityManager.getDelegate();
 		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
@@ -48,14 +50,18 @@ public class CategoryDAOImpl implements CategoryDAO {
 
 		Query<Category> query = session.createQuery(criteriaQuery);
 		List<Category> categoryList = query.getResultList();
-		categoryList.stream().forEach(category1 -> {
+		categoryList.forEach(getCategoryConsumer(categoryVOList));
+		return categoryVOList;
+	}
+
+	private static @NonNull Consumer<Category> getCategoryConsumer(List<CategoryVO> categoryVOList) {
+		return category1 -> {
 			CategoryVO category = new CategoryVO();
 			category.setCategoryId(category1.getCategoryId());
 			category.setName(category1.getName());
 			category.setLastUpdate(category1.getLastUpdate());
 			categoryVOList.add(category);
-		});
-		return categoryVOList;
+		};
 	}
 
 	@Override
@@ -65,14 +71,14 @@ public class CategoryDAOImpl implements CategoryDAO {
 		int pageNumber = pageable.getPageNumber();
 		int pageSize = pageable.getPageSize();
 
-		List<CategoryVO> categoryVOList = new ArrayList<CategoryVO>();
+		List<CategoryVO> categoryVOList = new ArrayList<>();
 
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
 		countQuery.select(criteriaBuilder.count(countQuery.from(Category.class)));
 		Long countResults = entityManager.createQuery(countQuery).getSingleResult();
 		log.info(" Total Count : {} ", countResults);
-		int lastPageNumber = 0;
+		int lastPageNumber;
 		if (pageNumber - 1 == 0) {
 			lastPageNumber = 0;
 		} else {
@@ -88,13 +94,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 		typedQuery.setMaxResults(pageSize);
 		log.info(" Result Size : {} ", typedQuery.getResultList().size());
 		List<Category> categoryList = typedQuery.getResultList();
-		categoryList.stream().forEach(categoryObj -> {
-			CategoryVO category = new CategoryVO();
-			category.setCategoryId(categoryObj.getCategoryId());
-			category.setName(categoryObj.getName());
-			category.setLastUpdate(categoryObj.getLastUpdate());
-			categoryVOList.add(category);
-		});
+		categoryList.forEach(getCategoryConsumer(categoryVOList));
 
 //		new PagedResult<>(typedQuery.getResultList()
 //                .stream()
@@ -111,14 +111,14 @@ public class CategoryDAOImpl implements CategoryDAO {
 		log.info("... Entered into getCategoryDetailsById() of CategoryDAOImpl ...");
 		Session session = (Session) entityManager.getDelegate();
 		CategoryVO category = SKUtility.getCategoryDetailsById(session, categoryId);
-		log.info("Category Obj : " + category);
+		log.info("Category Obj : {}", category);
 		return category;
 	}
 
 	@Override
 	public int saveCategory(CategoryVO category) {
 		log.info("... Entered into saveCategory() of CategoryDAOImpl ...category : {}", category);
-		int categoryId = 0;
+		int categoryId;
 
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -143,8 +143,6 @@ public class CategoryDAOImpl implements CategoryDAO {
 	@Override
 	public boolean updateCategory(CategoryVO category) {
 		log.info("... Entered into updateCategory() of CategoryDAOImpl ...category : {}", category);
-		boolean isUpdate = false;
-
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			Category categoryObj = new Category();
@@ -155,14 +153,12 @@ public class CategoryDAOImpl implements CategoryDAO {
 			// Use merge instead of update for detached entities
 			entityManager.merge(categoryObj);
 
-			isUpdate = true;
+			return true;
 		} catch (Exception e) {
 			log.error("Exception: {}", e);
 			throw e; // RETHROW to ensure Spring triggers a transaction rollback if needed
 		}
-
-		return isUpdate;
-	}
+    }
 
 	@Override
 	public boolean deleteCategory(int categoryId) {
