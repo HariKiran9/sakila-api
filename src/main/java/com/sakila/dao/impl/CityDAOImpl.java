@@ -1,21 +1,11 @@
-/**
- * 
- */
+
 package com.sakila.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.sakila.dao.CityDAO;
@@ -24,14 +14,16 @@ import com.sakila.modal.City;
 import com.sakila.vo.CityVO;
 import com.sakila.vo.CountryVO;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository("cityDAO")
 public class CityDAOImpl implements CityDAO {
-
-	private static final Logger loger = LoggerFactory.getLogger(CityDAOImpl.class);
 
 	@PersistenceContext
 	public EntityManager entityManagerFactory;
@@ -43,7 +35,7 @@ public class CityDAOImpl implements CityDAO {
 	 */
 	@Override
 	public List<CityVO> getAllCities() {
-		loger.info("... Entered into getAllCities() of CityDAOImpl ...");
+		log.info("... Entered into getAllCities() of CityDAOImpl ...");
 		List<CityVO> cityList = new ArrayList<CityVO>();
 		Session session = (Session) entityManagerFactory.getDelegate();
 		CriteriaBuilder builder = session.getCriteriaBuilder();
