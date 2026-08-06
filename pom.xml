@@ -20,8 +20,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>21</java.version>
-		<!-- Removed conflicting hibernate and data-jpa versions -->
-		<!--<guava.version>33.0.0-jre</guava.version>--> <!-- Upgraded to support Java 21 -->
 	</properties>
 
 	<dependencies>
@@ -37,8 +35,7 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- Core Spring Data JPA (Includes managed Hibernate & Jakarta
-		Persistence) -->
+		<!-- Core Spring Data JPA (Includes managed Hibernate & Jakarta Persistence) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -55,20 +52,6 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
-		</dependency>
-
-		<!-- Google Guava (Explicit version maintained but upgraded for Java 21
-		compatibility) -->
-		<!--<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>-->
-
-		<!-- AspectJ (Version managed cleanly by Spring Boot) -->
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
 		</dependency>
 
 		<!-- Testing Framework -->
