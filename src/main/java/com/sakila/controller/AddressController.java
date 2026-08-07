@@ -21,22 +21,20 @@ import com.sakila.service.AddressService;
  *
  */
 @RestController
+@RequestMapping(value = "/address")
 public class AddressController {
 
 	@Autowired
 	private AddressService addressService;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<? extends Object> getAllAddress() {
+	public ResponseEntity<List<Address>> getAllAddress() {
 		List<Address> addressList = addressService.getAddressDetails();
-//		addressList.forEach(address -> {
-//			System.out.println("Address Id : " + address.getAddressId());
-//		});
 		return new ResponseEntity<>(addressList, HttpStatus.OK);
 	}
 
 	@RequestMapping(path = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<? extends Object> getAddressDetailById(@PathVariable(name = "id") int addressId) {
+	public ResponseEntity<Address> getAddressDetailById(@PathVariable(name = "id") int addressId) {
 		return new ResponseEntity<>(addressService.getAddressDetailsById(addressId), HttpStatus.OK);
 	}
 }

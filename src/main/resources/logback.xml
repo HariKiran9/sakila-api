@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+	<!-- 1. Define Log Storage Directory Paths -->
+    <springProperty scope="context" name="LOG_PATH" source="LOG_DIR" defaultValue="logs"/>
+
+	<property name="LOG_FILE_NAME" value="sakila-api" />
+
+	<!-- 2. Console Appender with Color Coding for Local Development -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<!-- Structured layout format including Thread tracking details -->
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %5level %logger{36} - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<!-- 3. Rolling File Appender with Automatic Compression and Archive Archival -->
+	<appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+
+		<!-- Masking Evaluator: Automatically scrambles passwords, secrets, and tokens (CWE-522) -->
+		<encoder
+			class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<!-- Evaluates logs and replaces matches with asterisks using regex lookup filters -->
+				<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}
+					-
+					%replace(%msg){'(password|pass|pwd|token|secret|authorization)=[^&amp;\s,\)]+',
+					'$1=******'}%n</pattern>
+			</layout>
+			<charset>UTF-8</charset>
+		</encoder>
+
+		<!-- Time and Size-Based Rolling Policy -->
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- Roll files daily and append .gz compression to save Azure disk storage costs -->
+			<fileNamePattern>${LOG_PATH}/archived/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log.gz
+			</fileNamePattern>
+			<!-- Max size per log file before splitting splits -->
+			<maxFileSize>10MB</maxFileSize>
+			<!-- Total days of historical records retained before pruning oldest elements -->
+			<maxHistory>30</maxHistory>
+			<!-- Cap maximum archive directory threshold to protect against Resource Exhaustion (CWE-400) -->
+			<totalSizeCap>2GB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+
+	<!-- 4. Async Appender to Prevent Logging Bottlenecks on Concurrent DB Operations -->
+	<appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="ROLLING_FILE" />
+		<!-- Do not discard TRACE/DEBUG items if buffer pipeline loads are high -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- Internal queue storage size bounds parameters allocation settings -->
+		<queueSize>512</queueSize>
+		<!-- Prevent non-blocking drops during service execution cycles -->
+		<neverBlock>true</neverBlock>
+	</appender>
+
+	<!-- 5. Fine-Tuned Framework Threshold Management Options -->
+	<!-- Suppress noisy Hibernate framework logs to keep storage files clean -->
+	<logger name="org.hibernate" level="WARN" />
+	<!-- Keep Spring Security framework tracking focused on operational validation  rules -->
+	<logger name="org.springframework.security" level="INFO" />
+
+	<!-- 6. Application Context Level Management Definitions -->
+	<logger name="com.sakila" level="DEBUG" />
+
+	<!-- Root Logger Routing Core Engine Setup Configuration Strategy -->
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ASYNC_FILE" />
+	</root>
+
+</configuration>
