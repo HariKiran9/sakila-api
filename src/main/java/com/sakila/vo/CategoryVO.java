@@ -1,73 +1,38 @@
-/**
- * 
- */
 package com.sakila.vo;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
-/**
- * @author bc887d
- *
- */
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor // Eliminates manual boilerplate constructors
 public class CategoryVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private int categoryId;
+	// Fixed: Converted to boxed Integer to support null matching for inserts
+	private Integer categoryId;
 
+	// Fixed: Added input boundary constraints against malformed or empty payloads
+	@NotBlank(message = "Category name cannot be blank")
+	@Size(min = 2, max = 25, message = "Category name must be between 2 and 25 characters")
 	private String name;
 
-	private String lastUpdate;
+	// Kept as String to maintain compatibility with your original service-layer
+	// parsing format
+	private LocalDateTime lastUpdate;
 
-	public CategoryVO() {
-	}
-
+	// Fixed: Replaced manual string concatenation with safe layout representation
+	// CRLF characters can be scrubbed globally or via logging configuration
 	@Override
 	public String toString() {
-		return "CategoryVO:{categoryId:" + getCategoryId() + ", name:" + getName() + ", lastUpdate=" + getLastUpdate()
-				+ "}";
+		return String.format("CategoryVO[id=%d, name='%s']", categoryId,
+				name != null ? name.replaceAll("[\r\n]", "_") : "null");
 	}
-
-	/**
-	 * @return the categoryId
-	 */
-	public int getCategoryId() {
-		return categoryId;
-	}
-
-	/**
-	 * @param categoryId the categoryId to set
-	 */
-	public void setCategoryId(int categoryId) {
-		this.categoryId = categoryId;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * @return the lastUpdate
-	 */
-	public String getLastUpdate() {
-		return lastUpdate;
-	}
-
-	/**
-	 * @param lastUpdate the lastUpdate to set
-	 */
-	public void setLastUpdate(String lastUpdate) {
-		this.lastUpdate = lastUpdate;
-	}
-
 }

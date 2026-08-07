@@ -21,7 +21,6 @@ import com.sakila.service.AddressService;
  *
  */
 @RestController
-@RequestMapping(value = "/address")
 public class AddressController {
 
 	@Autowired

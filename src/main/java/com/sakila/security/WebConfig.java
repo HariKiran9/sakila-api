@@ -1,9 +1,9 @@
 package com.sakila.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -12,28 +12,32 @@ import com.sakila.interceptor.SakilaInterceptor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Configuration
-@EnableWebMvc
-public class WebConfig implements WebMvcConfigurer { // 1. Swapped out the removed class for the interface
+@Configuration // Removed @EnableWebMvc to prevent breaking Spring Boot defaults
+public class WebConfig implements WebMvcConfigurer {
+
+	private final SakilaInterceptor sakilaInterceptor;
+
+	// Fixed: Injecting origins from properties file to prevent hardcoded wildcards
+	@Value("${app.security.allowed-origins}")
+	private String[] allowedOrigins;
 
 	@Autowired
-	private SakilaInterceptor sakilaInterceptor;
+	public WebConfig(SakilaInterceptor sakilaInterceptor) {
+		this.sakilaInterceptor = sakilaInterceptor;
+	}
 
-	@Override // 2. Fixed the method name to plural 'addCorsMappings' and added @Override
+	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		log.info("...Entered into addCorsMappings() of WebConfig...");
+		log.info("... Configuring secure CORS mappings for specified origins ...");
 
-		// Note: removed super.addCorsMappings(registry) because it's a no-op on an
-		// interface interface method
-
-		registry.addMapping("/**") // 3. Simplified broad pattern mapping to standard '**'
-				.allowedMethods("PUT", "DELETE", "POST", "GET", "OPTIONS", "PATCH").allowedOrigins("*")
-				.allowedHeaders("*");
+		registry.addMapping("/**").allowedOrigins(allowedOrigins) // Fixed: Safe, restricted origins instead of "*"
+				.allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS").allowedHeaders("*")
+				.allowCredentials(true); // Required for secure authorization headers / cookies
 	}
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		log.info("...Entered into addInterceptors() of WebConfig...");
+		log.info("... Registering SakilaInterceptor workflow filter logic ...");
 		registry.addInterceptor(sakilaInterceptor);
 	}
 }

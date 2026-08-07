@@ -15,103 +15,98 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class SakilaInterceptor implements HandlerInterceptor {
 
-	@Value("${CLIENT_HEADER_PREFIX}")
-	private String clinetPrefix = "sakila";
+	// Fixed: Default configuration fails gracefully if property is missing
+	@Value("${CLIENT_HEADER_PREFIX:sakila}")
+	private String clientPrefix;
 
-	public SakilaInterceptor() {
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.web.servlet.HandlerInterceptor#preHandle(javax.servlet.
-	 * http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
-	 * java.lang.Object)
-	 */
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		log.info("...Entered into preHandle() of SakilaInterceptor...");
-		log.info("[preHandle][" + request + "]" + "[" + request.getMethod() + "]" + request.getRequestURI()
-				+ getParameters(request));
+		if (log.isInfoEnabled()) {
+			String cleanUri = sanitizeString(request.getRequestURI());
+			String cleanMethod = sanitizeString(request.getMethod());
+			String cleanParams = getParameters(request);
+
+			// Fixed: Secure, parameterized logging with sanitized variables
+			log.info("[preHandle] [{}] Path: {} Parameters: {}", cleanMethod, cleanUri, cleanParams);
+		}
 		return true;
 	}
 
 	private String getParameters(HttpServletRequest request) {
-		StringBuffer posted = new StringBuffer();
-		Enumeration<?> e = request.getParameterNames();
-		if (e != null) {
+		log.info("...Entered into getParameters() of SakilaInterceptor...");
+		StringBuilder posted = new StringBuilder(); // Fixed: Use StringBuilder over synchronous StringBuffer
+		Enumeration<String> e = request.getParameterNames();
+
+		if (e != null && e.hasMoreElements()) {
 			posted.append("?");
 		}
-		while (e.hasMoreElements()) {
+
+		while (e != null && e.hasMoreElements()) {
 			if (posted.length() > 1) {
 				posted.append("&");
 			}
-			String curr = (String) e.nextElement();
-			posted.append(curr + "=");
-			if (curr.contains("password") || curr.contains("pass") || curr.contains("pwd")) {
+			String curr = e.nextElement();
+			String sanitizedKey = sanitizeString(curr);
+			posted.append(sanitizedKey).append("=");
+
+			// Fixed: Case-insensitive lookups for security-sensitive keywords
+			String lowerKey = curr.toLowerCase();
+			if (lowerKey.contains("password") || lowerKey.contains("pass") || lowerKey.contains("pwd")
+					|| lowerKey.contains("token") || lowerKey.contains("secret")
+					|| lowerKey.contains("authorization")) {
 				posted.append("*****");
 			} else {
-				posted.append(request.getParameter(curr));
+				posted.append(sanitizeString(request.getParameter(curr)));
 			}
 		}
-		String ip = request.getHeader("X-FORWARDED-FOR");
-		String ipAddr = (ip == null) ? getRemoteAddr(request) : ip;
-		if (ipAddr != null && !ipAddr.equals("")) {
-			posted.append("&_psip=" + ipAddr);
+
+		// Fixed: Use request.getRemoteAddr(). Cloud environments should use Spring's
+		// native forward headers strategy
+		String ipAddr = request.getRemoteAddr();
+		if (ipAddr != null && !ipAddr.isEmpty()) {
+			posted.append("&_psip=").append(sanitizeString(ipAddr));
 		}
 		return posted.toString();
 	}
 
-	private String getRemoteAddr(HttpServletRequest request) {
-		String ipFromHeader = request.getHeader("X-FORWARDED-FOR");
-		if (ipFromHeader != null && ipFromHeader.length() > 0) {
-			log.info("ip from proxy - X-FORWARDED-FOR : " + ipFromHeader);
-			return ipFromHeader;
-		}
-		return request.getRemoteAddr();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.web.servlet.HandlerInterceptor#postHandle(javax.servlet.
-	 * http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
-	 * java.lang.Object, org.springframework.web.servlet.ModelAndView)
-	 */
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 		log.info("...Entered into postHandle() of SakilaInterceptor...");
-		final HttpServletRequest httprequest = request;
-		final Enumeration<String> headerNames = httprequest.getHeaderNames();
+		Enumeration<String> headerNames = request.getHeaderNames();
 		if (headerNames != null) {
 			while (headerNames.hasMoreElements()) {
-				String headerKey = (String) headerNames.nextElement();
-				log.info("headerKey : {}", headerKey);
-				if (headerKey.contains(this.clinetPrefix)) {
-					response.addHeader(headerKey, httprequest.getHeader(headerKey));
+				String headerKey = headerNames.nextElement();
+
+				// Fixed: Check that prefix isn't null and look up securely
+				if (clientPrefix != null && headerKey.toLowerCase().contains(clientPrefix.toLowerCase())) {
+					String headerValue = request.getHeader(headerKey);
+
+					// Fixed: Sanitize header injections before adding them back to response stream
+					response.addHeader(sanitizeString(headerKey), sanitizeString(headerValue));
 				}
 			}
 		}
-
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.web.servlet.HandlerInterceptor#afterCompletion(javax.
-	 * servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
-	 * java.lang.Object, java.lang.Exception)
-	 */
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
 			throws Exception {
 		log.info("...Entered into afterCompletion() of SakilaInterceptor...");
+		// Keeps pipeline clean without tracking state changes or throwing leaks
 	}
 
+	/**
+	 * Helper method to strip out dangerous CRLF line-breaks to prevent Log
+	 * Injection (CWE-117)
+	 */
+	private String sanitizeString(String input) {
+		log.info("...Entered into sanitizeString() of SakilaInterceptor...");
+		if (input == null) {
+			return "";
+		}
+		// Replace Carriage Return and Line Feed blocks to safeguard back-end aggregator
+		return input.replaceAll("[\r\n]", "_");
+	}
 }
