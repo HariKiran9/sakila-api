@@ -69,6 +69,7 @@ public class FilmDAOImpl implements FilmDAO {
 			film1.setRating(film.getRating());
 			film1.setSpecialFeatures(film.getSpecialFeatures());
 			film1.setLastUpdate(film.getLastUpdate());
+			film1.setReleaseYear(film.getReleaseYear());
 			films.add(film1);
 		}
 		return films;
